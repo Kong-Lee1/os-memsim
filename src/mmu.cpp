@@ -1,4 +1,7 @@
 #include "mmu.h"
+#include <iostream>
+#include <string>
+#include <vector>
 
 Mmu::Mmu(int memory_size)
 {

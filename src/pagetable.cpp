@@ -1,4 +1,7 @@
 #include "pagetable.h"
+#include <iostream>
+#include <string>
+#include <vector>
 
 PageTable::PageTable(int page_size)
 {

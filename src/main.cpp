@@ -4,6 +4,8 @@
 #include "mmu.h"
 #include "pagetable.h"
 
+using namespace std;
+
 void printStartMessage(int page_size);
 void createProcess(int text_size, int data_size, Mmu *mmu, PageTable *page_table);
 void allocateVariable(uint32_t pid, std::string var_name, DataType type, uint32_t num_elements, Mmu *mmu, PageTable *page_table);
@@ -31,21 +33,100 @@ int main(int argc, char **argv)
     // Create MMU and Page Table
     Mmu *mmu = new Mmu(mem_size);
     PageTable *page_table = new PageTable(page_size);
+    Process p1;
+    //string var_name;
+    //string var_data_type;
 
     // Prompt loop
     std::string command;
+    std::string var_name;
+    std::string print_object;
+    uint8_t var_data_type;
+    uint32_t allocate_num_elements;
+    uint32_t offset;
+    void* value;
     std::cout << "> ";
     std::getline (std::cin, command);
     while (command != "exit") {
-        // Handle command
+        // Handle command (create, allocate, set, free, terminate, print)
         // TODO: implement this!
+
+        if(command == "create"){
+
+            createProcess(mem_size, page_size, mmu, page_table);
+        }
+
+        else if(command == "allocate"){  
+
+            //string var_name;
+            //string var_data_type
+
+            std::cout << "what is the variable name? ";
+            std::cin >> var_name;
+            std::cout << "what is the variable's data type? ";
+            std::cin >> var_data_type;
+            std::cout << "how many elements to allocate? ";
+            std::cin >> allocate_num_elements;
+
+            allocateVariable(p1.pid, var_name, (DataType)var_data_type, allocate_num_elements, mmu, page_table);
+            
+            //std::cout << var_name + var_data_type;
+        }
+        else if(command == "set"){
+            
+            std::cout << "what is the variable name? ";
+            std::cin >> var_name;
+            std::cout << "what is the offset? ";
+            std::cin >> offset;
+            std::cout << "what is the value? ";
+            std::cin >> value;
+
+
+            setVariable(p1.pid, var_name, offset, value, mmu, page_table, memory);
+
+        }else if(command == "free"){
+            
+            std::cout << "what is the variable name? ";
+            std::cin >> var_name;
+
+            freeVariable(p1.pid, var_name, mmu, page_table);
+
+        }else if(command == "terminate"){
+
+            terminateProcess(p1.pid, mmu, page_table);
+            
+
+        }else if(command == "print"){
+
+            std::cout << "What object do you want to print? ";
+            std::cin >> print_object;
+
+            if(print_object == "mmu"){
+
+            }else if(print_object == "page"){
+                
+            }else if(print_object == "processes"){
+                
+            }else if(print_object == "pid"){
+                
+            }else{
+
+                std::cout << "please try again and enter a real object to be printed ";
+            }
+
+
+        }else{
+
+            std::cout << "please try again and enter a valid command";
+        }
+        
 
         // Get next command
         std::cout << "> ";
         std::getline (std::cin, command);
     }
 
-    // Cean up
+    // Clean up
     free(memory);
     delete mmu;
     delete page_table;
