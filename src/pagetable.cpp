@@ -36,6 +36,15 @@ void PageTable::addEntry(uint32_t pid, int page_number)
     // Find free frame
     // TODO: implement this!
     _table[entry] = frame;
+
+/*
+    for(int i = 0; i < _table.size(); i++){
+
+        if(_table[i] == FreeSpace){
+
+        }
+    }
+    */
 }
 
 int PageTable::getPhysicalAddress(uint32_t pid, uint32_t virtual_address)
@@ -70,5 +79,8 @@ void PageTable::print()
     for (i = 0; i < keys.size(); i++)
     {
         // TODO: print all pages
+
+        std::cout << keys[i];
+    
     }
 }

@@ -3,8 +3,9 @@
 #include <cstring>
 #include "mmu.h"
 #include "pagetable.h"
+#include <vector>
 
-using namespace std;
+//using namespace std;
 
 void printStartMessage(int page_size);
 void createProcess(int text_size, int data_size, Mmu *mmu, PageTable *page_table);
@@ -41,21 +42,28 @@ int main(int argc, char **argv)
     std::string command;
     std::string var_name;
     std::string print_object;
-    uint8_t var_data_type;
-    uint32_t allocate_num_elements;
+    //char delimiter = ' ';
+    //uint8_t var_data_type;
+    //uint32_t allocate_num_elements;
     uint32_t offset;
-    void* value;
+    //void* value;
     std::cout << "> ";
     std::getline (std::cin, command);
     while (command != "exit") {
         // Handle command (create, allocate, set, free, terminate, print)
         // TODO: implement this!
-
+        
         if(command == "create"){
 
             createProcess(mem_size, page_size, mmu, page_table);
         }
 
+        // Get next command
+        std::cout << "> ";
+        std::getline (std::cin, command);
+
+
+        /*
         else if(command == "allocate"){  
 
             //string var_name;
@@ -114,16 +122,13 @@ int main(int argc, char **argv)
                 std::cout << "please try again and enter a real object to be printed ";
             }
 
-
+        
         }else{
 
             std::cout << "please try again and enter a valid command";
-        }
-        
+        }*/
 
-        // Get next command
-        std::cout << "> ";
-        std::getline (std::cin, command);
+       
     }
 
     // Clean up
@@ -157,6 +162,16 @@ void createProcess(int text_size, int data_size, Mmu *mmu, PageTable *page_table
     //   - create new process in the MMU
     //   - allocate new variables for the <TEXT>, <GLOBALS>, and <STACK>
     //   - print pid
+
+
+    mmu->createProcess();
+
+    // not sure on this - 04/15/2021
+    //int *text_size_mem_alloc = malloc(sizeof(text_size));
+    //int *globals_mem_alloc = malloc();
+    //int *stack_mem_alloc = malloc();
+
+    //printf("%lu \n", );
 }
 
 void allocateVariable(uint32_t pid, std::string var_name, DataType type, uint32_t num_elements, Mmu *mmu, PageTable *page_table)
@@ -189,4 +204,7 @@ void terminateProcess(uint32_t pid, Mmu *mmu, PageTable *page_table)
     // TODO: implement this!
     //   - remove process from MMU
     //   - free all pages associated with given process
+
+    
+    
 }
