@@ -4,6 +4,7 @@
 #include "mmu.h"
 #include "pagetable.h"
 #include <vector>
+#include <sstream>
 
 //using namespace std;
 
@@ -13,6 +14,7 @@ void allocateVariable(uint32_t pid, std::string var_name, DataType type, uint32_
 void setVariable(uint32_t pid, std::string var_name, uint32_t offset, void *value, Mmu *mmu, PageTable *page_table, void *memory);
 void freeVariable(uint32_t pid, std::string var_name, Mmu *mmu, PageTable *page_table);
 void terminateProcess(uint32_t pid, Mmu *mmu, PageTable *page_table);
+bool powerOfTwo(uint32_t byteSize);
 
 int main(int argc, char **argv)
 {
@@ -41,30 +43,51 @@ int main(int argc, char **argv)
     // Prompt loop
     std::string command;
     std::string var_name;
+    uint32_t pid;
+    
     std::string print_object;
     //char delimiter = ' ';
-    //uint8_t var_data_type;
-    //uint32_t allocate_num_elements;
+    uint8_t var_data_type;
+    uint32_t allocate_num_elements;
     uint32_t offset;
-    //void* value;
+    uint32_t text_size;
+    uint32_t data_size;
+    void* value;
     std::cout << "> ";
     std::getline (std::cin, command);
     while (command != "exit") {
+	std::string arguments[50];
+	int arg_num = 0;
+        std::stringstream ss(command);
+	std::string word;
+	while (ss >> word) {
+		arguments[arg_num] = word;
+		arg_num++;
+	}
         // Handle command (create, allocate, set, free, terminate, print)
         // TODO: implement this!
-        
-        if(command == "create"){
-
-            createProcess(mem_size, page_size, mmu, page_table);
+        if(arguments[0] == "create"){ 
+	    text_size = (uint32_t)std::stoi(arguments[1]);
+            data_size = (uint32_t)std::stoi(arguments[2]);
+	    if ( !powerOfTwo(text_size) ) {
+	    	printf("text_size is not a power of two, please try again.\n");
+	    } else if ( !powerOfTwo(data_size) ) {
+		printf("data_size is not a power of two, please try again.\n");
+	    } else if (text_size < 2048 || text_size > 16384) {
+		printf("text_size is not within range: 2048-16384, please try again.\n");
+	    } else if (data_size < 2048 || data_size > 16384) {
+		printf("data_size is not within range: 2048-16384, please try again.\n");
+	    } else {
+            createProcess(text_size, data_size, mmu, page_table);
+	    }
         }
-
         // Get next command
         std::cout << "> ";
         std::getline (std::cin, command);
 
 
         /*
-        else if(command == "allocate"){  
+        else if(arguments[0] == "allocate"){  
 
             //string var_name;
             //string var_data_type
@@ -80,7 +103,7 @@ int main(int argc, char **argv)
             
             //std::cout << var_name + var_data_type;
         }
-        else if(command == "set"){
+        else if(arguments[0] == "set"){
             
             std::cout << "what is the variable name? ";
             std::cin >> var_name;
@@ -92,19 +115,19 @@ int main(int argc, char **argv)
 
             setVariable(p1.pid, var_name, offset, value, mmu, page_table, memory);
 
-        }else if(command == "free"){
+        }else if(arguments[0] == "free"){
             
             std::cout << "what is the variable name? ";
             std::cin >> var_name;
 
             freeVariable(p1.pid, var_name, mmu, page_table);
 
-        }else if(command == "terminate"){
+        }else if(arguments[0] == "terminate"){
 
             terminateProcess(p1.pid, mmu, page_table);
             
 
-        }else if(command == "print"){
+        }else if(arguments[0] == "print"){
 
             std::cout << "What object do you want to print? ";
             std::cin >> print_object;
@@ -162,15 +185,13 @@ void createProcess(int text_size, int data_size, Mmu *mmu, PageTable *page_table
     //   - create new process in the MMU
     //   - allocate new variables for the <TEXT>, <GLOBALS>, and <STACK>
     //   - print pid
-
-
-    mmu->createProcess();
-
+    printf("%u", mmu->createProcess());
+    
     // not sure on this - 04/15/2021
     //int *text_size_mem_alloc = malloc(sizeof(text_size));
     //int *globals_mem_alloc = malloc();
     //int *stack_mem_alloc = malloc();
-
+    printf("test");
     //printf("%lu \n", );
 }
 
@@ -207,4 +228,15 @@ void terminateProcess(uint32_t pid, Mmu *mmu, PageTable *page_table)
 
     
     
+}
+bool powerOfTwo(uint32_t byteSize)
+{
+	uint32_t n;
+	n = byteSize;
+	if(n==0) { return false; }
+	while(n!=1) {
+		n = n/2;
+		if(n%2 != 0 && n != 1) {return false; }
+	}
+	return true;
 }
