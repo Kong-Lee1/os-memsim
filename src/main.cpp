@@ -5,6 +5,7 @@
 #include "pagetable.h"
 #include <vector>
 #include <sstream>
+#include <math.h>
 
 //using namespace std;
 
@@ -15,6 +16,7 @@ void setVariable(uint32_t pid, std::string var_name, uint32_t offset, void *valu
 void freeVariable(uint32_t pid, std::string var_name, Mmu *mmu, PageTable *page_table);
 void terminateProcess(uint32_t pid, Mmu *mmu, PageTable *page_table);
 bool powerOfTwo(uint32_t byteSize);
+uint32_t findPageOffset(uint32_t page_size);
 
 int main(int argc, char **argv)
 {
@@ -26,7 +28,17 @@ int main(int argc, char **argv)
     }
 
     // Print opening instuction message
-    int page_size = std::stoi(argv[1]);
+    if (!powerOfTwo((uint32_t)std::stoi(argv[1]))) {
+	printf("Unacceptable page size.\n");
+	return 0;
+    }
+    if (std::stoi(argv[1]) > 32768 || std::stoi(argv[1]) < 1024) {
+	printf("Unacceptable page size.\n");
+	return 0;
+    }
+    uint32_t page_size = (uint32_t)std::stoi(argv[1]);
+    uint32_t page_offset = findPageOffset(page_size);
+    uint32_t page_numbers = 32 - page_offset; 
     printStartMessage(page_size);
 
     // Create physical 'memory'
@@ -44,9 +56,7 @@ int main(int argc, char **argv)
     std::string command;
     std::string var_name;
     uint32_t pid;
-    
     std::string print_object;
-    //char delimiter = ' ';
     uint8_t var_data_type;
     uint32_t allocate_num_elements;
     uint32_t offset;
@@ -80,31 +90,27 @@ int main(int argc, char **argv)
 	    } else {
             createProcess(text_size, data_size, mmu, page_table);
 	    }
-        }
-        // Get next command
-        std::cout << "> ";
-        std::getline (std::cin, command);
-
-
-        /*
-        else if(arguments[0] == "allocate"){  
-
-            //string var_name;
-            //string var_data_type
-
-            std::cout << "what is the variable name? ";
-            std::cin >> var_name;
-            std::cout << "what is the variable's data type? ";
-            std::cin >> var_data_type;
-            std::cout << "how many elements to allocate? ";
-            std::cin >> allocate_num_elements;
-
-            allocateVariable(p1.pid, var_name, (DataType)var_data_type, allocate_num_elements, mmu, page_table);
-            
-            //std::cout << var_name + var_data_type;
-        }
-        else if(arguments[0] == "set"){
-            
+        } else if(arguments[0] == "allocate"){  
+	    pid = (uint32_t)std::stoi(arguments[1]);
+	    var_name = arguments[2];
+	    if (arguments[3] == "int" || arguments[3] == "float") {
+		var_data_type = 3U;
+	    } else if (arguments[3] == "char") {
+		var_data_type = 1U;
+	    } else if (arguments[3] == "short") {
+		var_data_type = 2U;
+	    } else if (arguments[3] == "double" || arguments[3] == "long") {
+		var_data_type = 4U;
+	    } else {
+		printf("Data type not recognized. Must be char, short, int/float, long/double; please try again.\n");
+		var_data_type = 00;
+	    }
+	    allocate_num_elements = (uint32_t)std::stoi(arguments[4]);
+	    if (var_data_type != 00) {
+            	allocateVariable(pid, var_name, (DataType)var_data_type, allocate_num_elements, mmu, page_table);
+            }
+        } else if(arguments[0] == "set"){
+            /*
             std::cout << "what is the variable name? ";
             std::cin >> var_name;
             std::cout << "what is the offset? ";
@@ -114,44 +120,43 @@ int main(int argc, char **argv)
 
 
             setVariable(p1.pid, var_name, offset, value, mmu, page_table, memory);
-
-        }else if(arguments[0] == "free"){
-            
+		*/
+        } else if(arguments[0] == "free"){
+            /*
             std::cout << "what is the variable name? ";
             std::cin >> var_name;
 
             freeVariable(p1.pid, var_name, mmu, page_table);
-
-        }else if(arguments[0] == "terminate"){
-
+	*/
+        } else if(arguments[0] == "terminate"){
+/*
             terminateProcess(p1.pid, mmu, page_table);
             
-
-        }else if(arguments[0] == "print"){
-
+*/
+        } else if(arguments[0] == "print"){
+/*
             std::cout << "What object do you want to print? ";
             std::cin >> print_object;
 
             if(print_object == "mmu"){
 
-            }else if(print_object == "page"){
+            } else if(print_object == "page"){
                 
-            }else if(print_object == "processes"){
+            } else if(print_object == "processes"){
                 
-            }else if(print_object == "pid"){
+            } else if(print_object == "pid"){
                 
-            }else{
+            } else {
 
                 std::cout << "please try again and enter a real object to be printed ";
             }
 
-        
-        }else{
-
+  */      
+        } else{
             std::cout << "please try again and enter a valid command";
-        }*/
-
-       
+        }
+	std::cout << "> ";
+	std::getline(std::cin, command);
     }
 
     // Clean up
@@ -186,8 +191,8 @@ void createProcess(int text_size, int data_size, Mmu *mmu, PageTable *page_table
     //   - allocate new variables for the <TEXT>, <GLOBALS>, and <STACK>
     //   - print pid
     printf("%u", mmu->createProcess());
-    
-    // not sure on this - 04/15/2021
+    printf("\n");
+    //not sure on this - 04/15/2021
     //int *text_size_mem_alloc = malloc(sizeof(text_size));
     //int *globals_mem_alloc = malloc();
     //int *stack_mem_alloc = malloc();
@@ -202,6 +207,7 @@ void allocateVariable(uint32_t pid, std::string var_name, DataType type, uint32_
     //   - if no hole is large enough, allocate new page(s)
     //   - insert variable into MMU
     //   - print virtual memory address 
+    
 }
 
 void setVariable(uint32_t pid, std::string var_name, uint32_t offset, void *value, Mmu *mmu, PageTable *page_table, void *memory)
@@ -239,4 +245,7 @@ bool powerOfTwo(uint32_t byteSize)
 		if(n%2 != 0 && n != 1) {return false; }
 	}
 	return true;
+}
+uint32_t findPageOffset(uint32_t page_size) {
+	return log2(page_size);
 }
