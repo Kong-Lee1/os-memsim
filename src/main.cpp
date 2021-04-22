@@ -56,6 +56,7 @@ int main(int argc, char **argv)
     std::string command;
     std::string var_name;
     uint32_t pid;
+    int processCreatorCounter = 0;
     std::string print_object;
     uint8_t var_data_type;
     uint32_t allocate_num_elements;
@@ -77,72 +78,90 @@ int main(int argc, char **argv)
         // Handle command (create, allocate, set, free, terminate, print)
         // TODO: implement this!
         if(arguments[0] == "create"){ 
-	    text_size = (uint32_t)std::stoi(arguments[1]);
+	        text_size = (uint32_t)std::stoi(arguments[1]);
             data_size = (uint32_t)std::stoi(arguments[2]);
 	    if ( !powerOfTwo(text_size) ) {
 	    	printf("text_size is not a power of two, please try again.\n");
 	    } else if ( !powerOfTwo(data_size) ) {
-		printf("data_size is not a power of two, please try again.\n");
+		    printf("data_size is not a power of two, please try again.\n");
 	    } else if (text_size < 2048 || text_size > 16384) {
-		printf("text_size is not within range: 2048-16384, please try again.\n");
+		    printf("text_size is not within range: 2048-16384, please try again.\n");
 	    } else if (data_size < 2048 || data_size > 16384) {
-		printf("data_size is not within range: 2048-16384, please try again.\n");
+		    printf("data_size is not within range: 2048-16384, please try again.\n");
 	    } else {
             createProcess(text_size, data_size, mmu, page_table);
+            processCreatorCounter++;
 	    }
         } else if(arguments[0] == "allocate"){  
-	    pid = (uint32_t)std::stoi(arguments[1]);
-	    var_name = arguments[2];
+	        pid = (uint32_t)std::stoi(arguments[1]);
+	        var_name = arguments[2];
 	    if (arguments[3] == "int" || arguments[3] == "float") {
-		var_data_type = 3U;
+		    var_data_type = 3U;
 	    } else if (arguments[3] == "char") {
-		var_data_type = 1U;
+		    var_data_type = 1U;
 	    } else if (arguments[3] == "short") {
-		var_data_type = 2U;
+		    var_data_type = 2U;
 	    } else if (arguments[3] == "double" || arguments[3] == "long") {
-		var_data_type = 4U;
+		    var_data_type = 4U;
 	    } else {
-		printf("Data type not recognized. Must be char, short, int/float, long/double; please try again.\n");
-		var_data_type = 00;
+		    printf("Data type not recognized. Must be char, short, int/float, long/double; please try again.\n");
+		    var_data_type = 00;
 	    }
-	    allocate_num_elements = (uint32_t)std::stoi(arguments[4]);
+	        allocate_num_elements = (uint32_t)std::stoi(arguments[4]);
 	    if (var_data_type != 00) {
             	allocateVariable(pid, var_name, (DataType)var_data_type, allocate_num_elements, mmu, page_table);
             }
         } else if(arguments[0] == "set"){
             /*
-            std::cout << "what is the variable name? ";
-            std::cin >> var_name;
-            std::cout << "what is the offset? ";
-            std::cin >> offset;
-            std::cout << "what is the value? ";
-            std::cin >> value;
+    
 
+            set <PID> <var_name> <offset> <value_0> <value_1> <value_2> ... <value_N>
+            Set the value for variable <var_name> starting at <offset>
+            Note: multiple contiguous values can be set with one command
+            */
+        
+           // need to check if user enter PID is valid
+           // maybe have a curPID variable?
 
-            setVariable(p1.pid, var_name, offset, value, mmu, page_table, memory);
-		*/
+           pid = (uint32_t)std::stoi(arguments[1]);
+           if(pid < 1024 || pid > (1024 + processCreatorCounter)){
+
+               std::cout << "pid is invalid, enter a valid pid \n";
+               //std::cout << mmu->createProcess() << "\n";
+           }
+
+           //need to check that the variable exists in the specified process
+           
+            
+
+            //setVariable(arguments[1], var_name, offset, value, mmu, page_table, memory);
+		
         } else if(arguments[0] == "free"){
             /*
-            std::cout << "what is the variable name? ";
-            std::cin >> var_name;
+  
 
             freeVariable(p1.pid, var_name, mmu, page_table);
-	*/
+	        */
         } else if(arguments[0] == "terminate"){
-/*
+            /*
             terminateProcess(p1.pid, mmu, page_table);
             
-*/
+            */
         } else if(arguments[0] == "print"){
-/*
-            std::cout << "What object do you want to print? ";
-            std::cin >> print_object;
+
+            print_object = arguments[1];
 
             if(print_object == "mmu"){
-
+                
+                //prints the mmu table
+                mmu->print();
+               
             } else if(print_object == "page"){
                 
-            } else if(print_object == "processes"){
+                //prints the page table
+                page_table->print();
+                
+            } /* else if(print_object == "processes"){
                 
             } else if(print_object == "pid"){
                 
@@ -196,7 +215,7 @@ void createProcess(int text_size, int data_size, Mmu *mmu, PageTable *page_table
     //int *text_size_mem_alloc = malloc(sizeof(text_size));
     //int *globals_mem_alloc = malloc();
     //int *stack_mem_alloc = malloc();
-    printf("test");
+    //printf("test");
     //printf("%lu \n", );
 }
 
@@ -207,6 +226,11 @@ void allocateVariable(uint32_t pid, std::string var_name, DataType type, uint32_
     //   - if no hole is large enough, allocate new page(s)
     //   - insert variable into MMU
     //   - print virtual memory address 
+
+    page_table->getPhysicalAddress(pid, pid);
+
+
+    //page_table->getPhysicalAddress(pid, );
     
 }
 
