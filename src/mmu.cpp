@@ -21,7 +21,7 @@ uint32_t Mmu::createProcess()
     Variable *var = new Variable();
     var->name = "<FREE_SPACE>";
     var->type = DataType::FreeSpace;
-    var->virtual_address = 0;
+    var->virtual_address = 0;//does this change for each created process?
     var->size = _max_size;
     proc->variables.push_back(var);
 
@@ -71,6 +71,37 @@ void Mmu::print()
             //std::cout << _processes[i]->variables[j]->size;
         }
     }
+}
+
+uint32_t Mmu::getVirtualAddress(int pid_index, int variable_index){
+
+    return _processes[pid_index]->variables[variable_index]->virtual_address;
+}
+
+int Mmu::getVariableIndex(int pid_index, std::string var_name){
+
+    
+    int variableIndex = -1;
+
+    for (int j = 0; j < _processes[pid_index]->variables.size(); j++)
+    {
+
+        if(_processes[pid_index]->variables[j]->name == var_name){
+
+            variableIndex = j;
+        }
+
+    }
+    
+    
+    return variableIndex;
+}
+
+DataType Mmu:: getVariableType(int pid_index, int variable_index){
+
+
+    return _processes[pid_index]->variables[variable_index]->type;
+
 }
 
 //std::vector<Process*> getProcessesVec(std::vector<Process*> _Processes, uint32_t *pid){

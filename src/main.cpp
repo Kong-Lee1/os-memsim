@@ -236,8 +236,8 @@ void createProcess(int text_size, int data_size, Mmu *mmu, PageTable *page_table
     printf("\n");
 
     uint32_t process_text_size = text_size;
-    uint32_t process_text_size = data_size;
-    uint32_t process_stack = 65536;
+    uint32_t process_data_size = data_size;
+    //uint32_t process_stack = 65536;
     //not sure on this - 04/15/2021
     //allocateVariable()
 
@@ -258,6 +258,10 @@ void allocateVariable(uint32_t pid, std::string var_name, DataType type, uint32_
     //if(page_table->){
         //page_table->addEntry(pid, page_table->getNextPageNumber(pid));
     //}
+
+    //PageTable::_table 
+    
+    
     Variable *new_var = new Variable();
     
     new_var->name = var_name;
@@ -278,6 +282,32 @@ void setVariable(uint32_t pid, std::string var_name, uint32_t offset, void *valu
     //   - insert `value` into `memory` at physical address
     //   * note: this function only handles a single element (i.e. you'll need to call this within a loop when setting
     //           multiple elements of an array) 
+
+    int pid_index = pid - 1024;
+    int variable_index = mmu->getVariableIndex(pid_index, var_name);
+    DataType var_type = mmu->getVariableType(pid_index, variable_index);
+
+    uint32_t var_virtual_addr = mmu->getVirtualAddress(pid_index, variable_index);
+    uint32_t var_physical_addr = page_table->getPhysicalAddress(pid, var_virtual_addr);
+
+    /*
+        if (arguments[3] == "int" || arguments[3] == "float") {
+		    var_data_type = 3U;
+	    } else if (arguments[3] == "char") {
+		    var_data_type = 1U;
+	    } else if (arguments[3] == "short") {
+		    var_data_type = 2U;
+	    } else if (arguments[3] == "double" || arguments[3] == "long") {
+		    var_data_type = 4U;
+    */
+
+    if(var_type == 3U){
+
+        //(int)*memory[var_physical_addr];// how do we write into memory based on variable data type??
+    }
+    
+
+
 }
 
 void freeVariable(uint32_t pid, std::string var_name, Mmu *mmu, PageTable *page_table)
@@ -297,8 +327,6 @@ void terminateProcess(uint32_t pid, Mmu *mmu, PageTable *page_table)
 
     delete &mmu[pid];
     free(&page_table[pid]);
-
-    
     
 }
 bool powerOfTwo(uint32_t byteSize)
