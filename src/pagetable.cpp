@@ -50,11 +50,13 @@ void PageTable::addEntry(uint32_t pid, int page_number)
     //the key would be passed into operator to access they key's mapped value
     //_table.operator[entry] = 
 
-    for(int i = 0; i < page_number; i++){
+    // Do we need to consider page numbers?? - 04/23/21
 
-        if(_table.at(entry)){
+    for(int i = 1; i < page_number; i++){
 
-            //_table.
+        if(_table.at(entry) == 0){
+
+            _table[entry] = i;
         }
     }
     
@@ -69,7 +71,11 @@ int PageTable::getPhysicalAddress(uint32_t pid, uint32_t virtual_address)
     //uint32_t tester = 2;
     //bit shifting works for real_page_number & real_page_offset - 04/21/21
 
-    int page_offset_holder = log2(_page_size);
+    uint32_t n = (uint32_t)log2(_page_size);// n bits for pageoffset
+    uint32_t page_number = virtual_address >> n;
+    uint32_t page_offset = (_page_size - 1) & virtual_address;
+
+    /*
 
     for(int i = 0; i < page_offset_holder; i++){
         
@@ -97,22 +103,33 @@ int PageTable::getPhysicalAddress(uint32_t pid, uint32_t virtual_address)
 
         //std::cout << (real_page_offset >> 1) << "\n";
     //}
-
-
+    */
 
 
     // Combination of pid and page number act as the key to look up frame number
-    std::string entry = std::to_string(pid) + "|" + std::to_string(real_page_number);
+    std::string entry = std::to_string(pid) + "|" + std::to_string(page_number);
     
     // If entry exists, look up frame number and convert virtual to physical address
-    // physical memory = page number and frame
+
+    // physical memory = page number and frame --
+    // virtual memory = page number and offset -- 
+    // offset bits are the same but page numbers are different
+    // how do we determine the which frame correspond to which page
+    // conversion -- convert frame number into binary and place this onto the front of the page number
+    // addresses are 32 bits but page sizes can be from 10 - 15 bits (1024 through 32768)
+    // - ask about offset and how it affects the translation/conversion between physical and virtual addresses??? --left off here
     int address = -1;
     if (_table.count(entry) > 0)
     {
         // TODO: implement this!
-        address = _table[entry];
+        address = _table[entry];//this is the physical frame number address at the entry (PID|page_number) in physical memory
 
-        
+        //want to join the physical frame number address and page offset together
+
+        address = address << n; 
+
+        address = address & page_offset; //??? physical frame number and pageoffset
+
     }
 
     return address;
@@ -134,4 +151,22 @@ void PageTable::print()
         std::cout << keys[i];
     
     }
+}
+
+int PageTable::getNextPageNumber(uint32_t pid){
+
+    int page_num = 0;
+
+    std::string entry = std::to_string(pid) + "|" + std::to_string(page_num);
+
+    while(_table.count(entry) > 0 ){
+
+        page_num = page_num + 1;
+
+        entry = std::to_string(pid) + "|" + std::to_string(page_num);
+
+    }
+
+    return page_num;
+
 }

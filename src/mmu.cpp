@@ -72,3 +72,8 @@ void Mmu::print()
         }
     }
 }
+
+//std::vector<Process*> getProcessesVec(std::vector<Process*> _Processes, uint32_t *pid){
+
+    //return _Processes.erase();
+//}

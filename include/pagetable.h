@@ -35,6 +35,7 @@ public:
 
     void addEntry(uint32_t pid, int page_number);
     int getPhysicalAddress(uint32_t pid, uint32_t virtual_address);
+    int getNextPageNumber(uint32_t pid);
     void print();
 };
 

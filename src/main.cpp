@@ -69,7 +69,8 @@ int main(int argc, char **argv)
     while (command != "exit") {
 	std::string arguments[50];
 	int arg_num = 0;
-        std::stringstream ss(command);
+    int set_num_args = 0;
+    std::stringstream ss(command);
 	std::string word;
 	while (ss >> word) {
 		arguments[arg_num] = word;
@@ -80,13 +81,14 @@ int main(int argc, char **argv)
         if(arguments[0] == "create"){ 
 	        text_size = (uint32_t)std::stoi(arguments[1]);
             data_size = (uint32_t)std::stoi(arguments[2]);
-	    if ( !powerOfTwo(text_size) ) {
+	    /*if ( !powerOfTwo(text_size) ) {
 	    	printf("text_size is not a power of two, please try again.\n");
 	    } else if ( !powerOfTwo(data_size) ) {
 		    printf("data_size is not a power of two, please try again.\n");
-	    } else if (text_size < 2048 || text_size > 16384) {
+	    } else */
+        if (text_size < 2048 || text_size > 16384) {
 		    printf("text_size is not within range: 2048-16384, please try again.\n");
-	    } else if (data_size < 2048 || data_size > 16384) {
+	    } else if (data_size < 0 || data_size > 1024) {
 		    printf("data_size is not within range: 2048-16384, please try again.\n");
 	    } else {
             createProcess(text_size, data_size, mmu, page_table);
@@ -124,6 +126,25 @@ int main(int argc, char **argv)
            // maybe have a curPID variable?
 
            pid = (uint32_t)std::stoi(arguments[1]);
+           var_name = arguments[2];
+           offset = (uint32_t)std::stoi(arguments[3]);
+
+           int empty_index_holder;
+
+            //we need keep track of the number of n-values provided
+            for(int i = 0; i < sizeof(arguments); i++){
+
+                if(arguments[i] == ""){
+                    empty_index_holder = i;
+                    break;
+                }
+                
+            }
+
+            set_num_args = empty_index_holder - 4;
+
+            //do we need to handle data type when storing n-values into memory/array???
+
            if(pid < 1024 || pid > (1024 + processCreatorCounter)){
 
                std::cout << "pid is invalid, enter a valid pid \n";
@@ -209,25 +230,41 @@ void createProcess(int text_size, int data_size, Mmu *mmu, PageTable *page_table
     //   - create new process in the MMU
     //   - allocate new variables for the <TEXT>, <GLOBALS>, and <STACK>
     //   - print pid
-    printf("%u", mmu->createProcess());
+
+    uint32_t pid = mmu->createProcess();
+    printf("%u", pid);
     printf("\n");
+
+    uint32_t process_text_size = text_size;
+    uint32_t process_text_size = data_size;
+    uint32_t process_stack = 65536;
     //not sure on this - 04/15/2021
-    //int *text_size_mem_alloc = malloc(sizeof(text_size));
-    //int *globals_mem_alloc = malloc();
-    //int *stack_mem_alloc = malloc();
-    //printf("test");
-    //printf("%lu \n", );
+    //allocateVariable()
+
+    
 }
 
 void allocateVariable(uint32_t pid, std::string var_name, DataType type, uint32_t num_elements, Mmu *mmu, PageTable *page_table)
 {
+    //allocate <PID> <var_name> <data_type> <number_of_elements> (allocated memory on the heap)
+
     // TODO: implement this!
     //   - find first free space within a page already allocated to this process that is large enough to fit the new variable
     //   - if no hole is large enough, allocate new page(s)
     //   - insert variable into MMU
     //   - print virtual memory address 
 
-    page_table->getPhysicalAddress(pid, pid);
+
+    //if(page_table->){
+        //page_table->addEntry(pid, page_table->getNextPageNumber(pid));
+    //}
+    Variable *new_var = new Variable();
+    
+    new_var->name = var_name;
+    new_var->type = type;
+    new_var->size = 0;
+
+    //printf("%d physical address is \n ", page_table->getPhysicalAddress(pid, pid));
 
 
     //page_table->getPhysicalAddress(pid, );
@@ -248,6 +285,8 @@ void freeVariable(uint32_t pid, std::string var_name, Mmu *mmu, PageTable *page_
     // TODO: implement this!
     //   - remove entry from MMU
     //   - free page if this variable was the only one on a given page
+
+    //delete &mmu[pid];
 }
 
 void terminateProcess(uint32_t pid, Mmu *mmu, PageTable *page_table)
@@ -255,6 +294,9 @@ void terminateProcess(uint32_t pid, Mmu *mmu, PageTable *page_table)
     // TODO: implement this!
     //   - remove process from MMU
     //   - free all pages associated with given process
+
+    delete &mmu[pid];
+    free(&page_table[pid]);
 
     
     
