@@ -97,22 +97,28 @@ int main(int argc, char **argv)
         } else if(arguments[0] == "allocate"){  
 	        pid = (uint32_t)std::stoi(arguments[1]);
 	        var_name = arguments[2];
-	    if (arguments[3] == "int" || arguments[3] == "float") {
-		    var_data_type = 3U;
-	    } else if (arguments[3] == "char") {
-		    var_data_type = 1U;
-	    } else if (arguments[3] == "short") {
-		    var_data_type = 2U;
-	    } else if (arguments[3] == "double" || arguments[3] == "long") {
-		    var_data_type = 4U;
-	    } else {
-		    printf("Data type not recognized. Must be char, short, int/float, long/double; please try again.\n");
-		    var_data_type = 00;
-	    }
-	        allocate_num_elements = (uint32_t)std::stoi(arguments[4]);
-	    if (var_data_type != 00) {
-            	allocateVariable(pid, var_name, (DataType)var_data_type, allocate_num_elements, mmu, page_table);
+
+            if (arguments[3] == "int" || arguments[3] == "float") {
+                var_data_type = 3U;
+            } else if (arguments[3] == "char") {
+                var_data_type = 1U;
+            } else if (arguments[3] == "short") {
+                var_data_type = 2U;
+            } else if (arguments[3] == "double" || arguments[3] == "long") {
+                var_data_type = 4U;
+            } else {
+                printf("Data type not recognized. Must be char, short, int/float, long/double; please try again.\n");
+                var_data_type = 00;
             }
+
+	        allocate_num_elements = (uint32_t)std::stoi(arguments[4]);
+
+            if (var_data_type != 00){
+                    allocateVariable(pid, var_name, (DataType)var_data_type, allocate_num_elements, mmu, page_table);
+                }
+                //also need to handle if allocation would exceed system memory -- this would happen in main?
+                //printf("%s error: allocation would exceed system memory \n")
+
         } else if(arguments[0] == "set"){
             /*
     
@@ -151,7 +157,7 @@ int main(int argc, char **argv)
                //std::cout << mmu->createProcess() << "\n";
            }
 
-           //need to check that the variable exists in the specified process
+           //need to check that the variable exists in the specified process -- this already taken care of inside set
            
             
 
@@ -193,7 +199,8 @@ int main(int argc, char **argv)
 
   */      
         } else{
-            std::cout << "please try again and enter a valid command";
+            //error check command if command if not 'create', 'allocate', and 'set', 'print', 'free', 'terminate' or 'exit'
+            std::cout << "error: command not recognized";
         }
 	std::cout << "> ";
 	std::getline(std::cin, command);
@@ -260,15 +267,112 @@ void allocateVariable(uint32_t pid, std::string var_name, DataType type, uint32_
     //}
 
     //PageTable::_table 
-    
-    
-    Variable *new_var = new Variable();
-    
-    new_var->name = var_name;
-    new_var->type = type;
-    new_var->size = 0;
 
-    //printf("%d physical address is \n ", page_table->getPhysicalAddress(pid, pid));
+    int pid_index = pid - 1024;
+    int variable_index = mmu->getVariableIndex(pid_index, var_name);
+    int type_size = -1;
+    int var_type = -1;
+    int page_break = -1;
+    int page_start;
+    std::vector<Process *> processVec = mmu->getProcessVector();
+
+    uint32_t memory_size = mmu->getMemorySize();
+    uint32_t page_size = page_table->getPageSize();
+    uint32_t virtual_addr;
+
+    //checks for exisiting process in the process vector
+    for(int i = 0; i < processVec.size(); i++){
+        
+        if((uint32_t)processVec[i]->pid != pid){
+
+            printf("%s error: process not found \n");
+        }
+    }
+
+    //checks for exisiting variable in the process vector
+    for(int i = 0; i < processVec.size(); i++){
+        
+        for(int j = 0; i < processVec[i]->variables.size(); j++ ){
+
+            if(processVec[i]->variables[j]->name == var_name){
+
+                printf("%s error: variable already exists \n");
+            }
+        }
+    }
+    
+
+    if(type == 1U){
+
+        type_size = 1;
+
+    }else if (type == 2U){
+        type_size = 2;
+
+    }else if(type == 3U){
+
+        type_size = 4;
+
+    }else if(type == 4U){
+
+        type_size = 8;
+
+    }else{
+
+        std::cout << "please provide a valid variable data type." << std::endl;
+    }
+
+    for(int i = 0; i < mmu->getVariableVecSize(pid_index); i++){
+        
+        if(mmu->getVariableType(pid_index, i) == 0U && mmu->getVariableSize(pid_index, variable_index) >= num_elements*type_size)
+        {
+
+            //memcpy((uint8_t*)memory + var_physical_addr, &value, type_size);
+
+            //need to implement & check page boundaries
+
+            for(int i = 0; i < memory_size/page_size; i++)//mmu->getMemorySize()/page_table->getPageSize() -> the # of pages we have 
+            {
+                
+                page_start = page_size*i;
+
+
+                if(page_start > mmu->getVirtualAddress(pid_index, variable_index) || page_start < mmu->getVirtualAddress(pid_index, variable_index) + num_elements*type_size){
+                    
+                    page_start = (page_start - mmu->getVirtualAddress(pid_index, variable_index))%type_size;
+                    
+                    virtual_addr = mmu->getVirtualAddress(pid_index, variable_index) + page_start;
+
+                    break;
+
+                }
+                /*
+                if(mmu->getVirtualAddress(pid_index, variable_index) < ){
+
+                    mmu->addVariableToProcess(pid, var_name, type, type_size*num_elements, mmu->getVirtualAddress());
+
+                }*/
+
+            }
+
+            mmu->addVariableToProcess(pid, var_name, type, type_size*num_elements, virtual_addr);
+
+                // need to check if the added variable still fits after adjusted page break(s);--04/27/21
+            break;
+        }
+
+        /*
+
+        */
+
+    }
+
+    
+
+
+    //printf("%d \n ", mmu->getVirtualAddress(pid_index, variable_index));
+    // or is it
+     printf("%d \n ", virtual_addr);
 
 
     //page_table->getPhysicalAddress(pid, );
@@ -285,10 +389,34 @@ void setVariable(uint32_t pid, std::string var_name, uint32_t offset, void *valu
 
     int pid_index = pid - 1024;
     int variable_index = mmu->getVariableIndex(pid_index, var_name);
+    int type_size = -1;
     DataType var_type = mmu->getVariableType(pid_index, variable_index);
+    std::vector<Process *> processVec = mmu->getProcessVector();
+    
 
     uint32_t var_virtual_addr = mmu->getVirtualAddress(pid_index, variable_index);
     uint32_t var_physical_addr = page_table->getPhysicalAddress(pid, var_virtual_addr);
+
+    //checks for exisiting process in the process vector
+    for(int i = 0; i < processVec.size(); i++){
+        
+        if((uint32_t)processVec[i]->pid != pid){
+
+            printf("%s error: process not found \n");
+        }
+    }
+
+    //checks for no matching variable in the process vector
+    for(int i = 0; i < processVec.size(); i++){
+        
+        for(int j = 0; i < processVec[i]->variables.size(); j++ ){
+
+            if(processVec[i]->variables[j]->name != var_name){
+
+                printf("%s error: variable not found \n");
+            }
+        }
+    }
 
     /*
         if (arguments[3] == "int" || arguments[3] == "float") {
@@ -300,11 +428,37 @@ void setVariable(uint32_t pid, std::string var_name, uint32_t offset, void *valu
 	    } else if (arguments[3] == "double" || arguments[3] == "long") {
 		    var_data_type = 4U;
     */
+   
 
-    if(var_type == 3U){
+    if(var_type == 1U){
 
-        //(int)*memory[var_physical_addr];// how do we write into memory based on variable data type??
+        type_size = 1;
+        memcpy((uint8_t*)memory + var_physical_addr, &value, type_size);
+
+       
+    }else if (var_type == 2U){
+        type_size = 2;
+        memcpy((uint8_t*)memory + var_physical_addr, &value, type_size);
+
+        
+    }else if(var_type == 3U){
+
+        type_size = 4;
+        memcpy((uint8_t*)memory + var_physical_addr, &value, type_size);
+
+         //(int)*memory[var_physical_addr];// how do we write into memory based on variable data type??
+
+    }else if(var_type == 4U){
+
+        type_size = 8;
+        memcpy((uint8_t*)memory + var_physical_addr, &value, type_size);
+
+    }else{
+
+        std::cout << "please provide a valid variable data type." << std::endl;
     }
+
+    //memcpy((uint8_t*)memory + var_physical_addr, &value, type_size);
     
 
 
@@ -316,7 +470,33 @@ void freeVariable(uint32_t pid, std::string var_name, Mmu *mmu, PageTable *page_
     //   - remove entry from MMU
     //   - free page if this variable was the only one on a given page
 
-    //delete &mmu[pid];
+
+    std::vector<Process *> processVec = mmu->getProcessVector();
+
+    //checks for exisiting process in the process vector
+    for(int i = 0; i < processVec.size(); i++){
+        
+        if((uint32_t)processVec[i]->pid != pid){
+
+            printf("%s error: process not found \n");
+        }
+    }
+
+    //checks for non-exisiting variable in the process vector
+    for(int i = 0; i < processVec.size(); i++){
+        
+        for(int j = 0; i < processVec[i]->variables.size(); j++ ){
+
+            if(processVec[i]->variables[j]->name != var_name){
+
+                printf("%s error: variable not found \n");
+            }
+        }
+    }
+
+    
+
+    delete &mmu[pid];
 }
 
 void terminateProcess(uint32_t pid, Mmu *mmu, PageTable *page_table)
@@ -324,6 +504,19 @@ void terminateProcess(uint32_t pid, Mmu *mmu, PageTable *page_table)
     // TODO: implement this!
     //   - remove process from MMU
     //   - free all pages associated with given process
+
+
+    std::vector<Process *> processVec = mmu->getProcessVector();
+
+    //checks for exisiting process in the process vector
+    for(int i = 0; i < processVec.size(); i++){
+        
+        if((uint32_t)processVec[i]->pid != pid){
+
+            printf("%s error: process not found \n");
+        }
+    }
+
 
     delete &mmu[pid];
     free(&page_table[pid]);

@@ -32,10 +32,14 @@ public:
     uint32_t createProcess();
     void addVariableToProcess(uint32_t pid, std::string var_name, DataType type, uint32_t size, uint32_t address);
     void print();
-    std::vector<Process*> getProcessesVec(std::vector<Process*> _Processes);
+    std::vector<Process *> Mmu:: getProcessVector();
     uint32_t Mmu::getVirtualAddress(int pid_index, int variable_index);
     int Mmu::getVariableIndex(int pid_index, std::string var_name);
     DataType Mmu:: getVariableType(int pid_index, int variable_index);
+    int Mmu:: getVariableVecSize(int pid_index);
+    int Mmu:: getVariableSize(int pid_index, int variable_index);
+    uint32_t Mmu:: getMemorySize();
+    //int Mmu:: getVariablePIDVirtualAddress(int pid_index, int variable_index);
 };
 
 #endif // __MMU_H_

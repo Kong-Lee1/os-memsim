@@ -170,3 +170,8 @@ int PageTable::getNextPageNumber(uint32_t pid){
     return page_num;
 
 }
+
+uint32_t PageTable::getPageSize(){
+
+    return _page_size;
+}

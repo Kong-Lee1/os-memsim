@@ -104,6 +104,34 @@ DataType Mmu:: getVariableType(int pid_index, int variable_index){
 
 }
 
+int Mmu:: getVariableVecSize(int pid_index){
+
+    return _processes[pid_index]->variables.size();
+}
+
+int Mmu:: getVariableSize(int pid_index, int variable_index){
+
+    return _processes[pid_index]->variables[variable_index]->size;
+}
+
+uint32_t Mmu:: getMemorySize(){
+
+    return _max_size;
+}
+
+std::vector<Process *> Mmu:: getProcessVector(){
+
+    return _processes;
+}
+
+
+/*
+int Mmu:: getVariablePIDVirtualAddress(int pid_index, int variable_index){
+
+    return _processes[pid_index]->variables[variable_index]->virtual_address;
+}*/
+
+
 //std::vector<Process*> getProcessesVec(std::vector<Process*> _Processes, uint32_t *pid){
 
     //return _Processes.erase();
