@@ -147,8 +147,8 @@ void PageTable::print()
     for (i = 0; i < keys.size(); i++)
     {
         // TODO: print all pages
-
-        std::cout << " | " << " | " << " | " << " | " << std::endl;
+        
+        std::cout << keys[i].at(i) << " | " << " | " << " | " << " | " << std::endl;
     
     }
 }

@@ -17,6 +17,7 @@ void freeVariable(uint32_t pid, std::string var_name, Mmu *mmu, PageTable *page_
 void terminateProcess(uint32_t pid, Mmu *mmu, PageTable *page_table);
 bool powerOfTwo(uint32_t byteSize);
 uint32_t findPageOffset(uint32_t page_size);
+uint32_t handleMemory(std::string command, uint32_t memory_copy, uint32_t pid, DataType type, std::string var_name, int num_elements, int text_size, int data_size);
 
 int main(int argc, char **argv)
 {
@@ -43,6 +44,7 @@ int main(int argc, char **argv)
 
     // Create physical 'memory'
     uint32_t mem_size = 67108864;
+    uint32_t mem_size_copy = mem_size;
     void *memory = malloc(mem_size); // 64 MB (64 * 1024 * 1024)
 
     // Create MMU and Page Table
@@ -66,6 +68,7 @@ int main(int argc, char **argv)
     void* value;
     std::cout << "> ";
     std::getline (std::cin, command);
+    std::vector<Process *> process_vector = mmu->getProcessVector();
     while (command != "exit") {
 	std::string arguments[50];
 	int arg_num = 0;
@@ -188,16 +191,55 @@ int main(int argc, char **argv)
                 //prints the page table
                 page_table->print();
                 
-            } /* else if(print_object == "processes"){
-                
-            } else if(print_object == "pid"){
+            }  else if(print_object == "processes"){
+
+                for(int i = 0; i < process_vector.size(); i++){
+
+                    printf("%u \n", process_vector[i]->pid);
+                }
                 
             } else {
+                
+                
+                size_t sep1 = print_object.find(":");
+                std::uint32_t object_pid = stoi(print_object.substr(0, sep1));
+                std::string object_var_name = print_object.substr(sep1, print_object.size());
+                DataType var_name_datatype;
+
+                for(int i = 0; i < process_vector.size(); i++){
+
+                    for(int j = 0; i < process_vector[i]->variables.size(); j++ ){
+
+                        
+                        
+                        if(process_vector[i]->pid == object_pid && process_vector[i]->variables[j]->name == object_var_name){
+                            
+                            std::cout << &process_vector[i]->variables[j]->virtual_address;
+                            //need to figure out a way to print the PID's Variable's Values
+                            //may have to use pointers or this way???
+                            //this only prints at one address, what about the others if there are multiple values
+                            //can multiple values be set at one VA???
+                            
+                        }
+                    }
+
+                    
+                }
+                
+                
+                }/*if(print_object == "pid"){
+                // print 1024:page
+                //If <object> is a "<PID>:<var_name>", print the value of the variable for that process
+
+                uint32_t object_pid = 
+
+
+            } *//*else {
 
                 std::cout << "please try again and enter a real object to be printed ";
-            }
+            }*/
 
-  */      
+       
         } else{
             //error check command if command if not 'create', 'allocate', and 'set', 'print', 'free', 'terminate' or 'exit'
             std::cout << "error: command not recognized";
@@ -246,7 +288,7 @@ void createProcess(int text_size, int data_size, Mmu *mmu, PageTable *page_table
     uint32_t process_data_size = data_size;
     //uint32_t process_stack = 65536;
     //not sure on this - 04/15/2021
-    //allocateVariable()
+    
 
     
 }
@@ -336,7 +378,7 @@ void allocateVariable(uint32_t pid, std::string var_name, DataType type, uint32_
                 
                 page_start = page_size*i;
 
-
+                //why are the statements different?
                 if(page_start > mmu->getVirtualAddress(pid_index, variable_index) || page_start < mmu->getVirtualAddress(pid_index, variable_index) + num_elements*type_size){
                     
                     page_start = (page_start - mmu->getVirtualAddress(pid_index, variable_index))%type_size;
@@ -345,6 +387,13 @@ void allocateVariable(uint32_t pid, std::string var_name, DataType type, uint32_
 
                     break;
 
+                }else{
+
+                    //need to allocate a new page if no hole is large enough
+                    /*
+
+                    */
+                
                 }
                 /*
                 if(mmu->getVirtualAddress(pid_index, variable_index) < ){
@@ -470,6 +519,20 @@ void freeVariable(uint32_t pid, std::string var_name, Mmu *mmu, PageTable *page_
     //   - remove entry from MMU
     //   - free page if this variable was the only one on a given page
 
+    int pid_index = pid - 1024;
+    int variable_index = mmu->getVariableIndex(pid_index, var_name);
+
+    int var_type_size = -1;
+    DataType var_type = mmu->getVariableType(pid_index, variable_index);
+    std::vector<Process *> processVec = mmu->getProcessVector();
+
+    var_type_size = mmu->getVariableSize(pid_index, variable_index);
+
+    uint32_t var_virtual_addr = mmu->getVirtualAddress(pid_index, variable_index);
+    uint32_t var_physcial_addr = page_table->getPhysicalAddress(pid, var_virtual_addr);
+
+    //void *var_ptr = malloc();
+
 
     std::vector<Process *> processVec = mmu->getProcessVector();
 
@@ -535,4 +598,30 @@ bool powerOfTwo(uint32_t byteSize)
 }
 uint32_t findPageOffset(uint32_t page_size) {
 	return log2(page_size);
+}
+
+uint32_t handleMemory(std::string command, uint32_t memory_copy, uint32_t pid, DataType type, std::string var_name, int num_elements, int text_size, int data_size){
+
+    
+    uint32_t remaining_memory = memory_copy;
+    
+    if(command == "create"){
+
+
+
+    }else if(command == "allocate"){
+
+    }else if(command == "set"){
+
+    }else if(command == "free"){
+
+    }else if(command == "terminate"){
+
+    }else{
+
+    }
+
+
+
+    return memory_copy;
 }
