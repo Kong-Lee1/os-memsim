@@ -2,6 +2,10 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <math.h>
+#include <iomanip>
+#include <sstream>
+#include <algorithm>
 
 Mmu::Mmu(int memory_size)
 {
@@ -57,6 +61,9 @@ void Mmu::addVariableToProcess(uint32_t pid, std::string var_name, DataType type
 void Mmu::print()
 {
     int i, j;
+    int space_counter;
+
+
 
     std::cout << " PID  | Variable Name | Virtual Addr | Size" << std::endl;
     std::cout << "------+---------------+--------------+------------" << std::endl;
@@ -65,7 +72,52 @@ void Mmu::print()
         for (j = 0; j < _processes[i]->variables.size(); j++)
         {
             // TODO: print all variables (excluding <FREE_SPACE> entries)
-            std::cout << _processes[i]->pid << "  |  " << _processes[i]->variables[j]->name << "  |  " << _processes[i]->variables[j]->virtual_address << "  |  " << _processes[i]->variables[j]->size;
+                std::string name = _processes[i]->variables[j]->name;
+                //std::stringstream ss = (int)_processes[i]->variables[j]->virtual_address;
+
+                std::string virtual_addr;// = std::to_string(_processes[i]->variables[j]->virtual_address);
+
+            if(name.length() >= 15){
+
+                name = name.substr(0, 15);
+
+            }else{
+
+                while(name.length() < 15){
+                    name = name + " ";
+                }
+            }
+
+            virtual_addr = decimalToBinary(_processes[i]->variables[j]->virtual_address);
+
+            if(virtual_addr.length() >= 8){
+
+                virtual_addr = virtual_addr.substr(0, 8);
+
+            }else{
+
+                while(virtual_addr.length() < 8){
+                    virtual_addr = "0" + virtual_addr;
+                }
+            }
+            
+            virtual_addr = "0x" + virtual_addr;
+
+           std::string size = std::to_string(_processes[i]->variables[j]->size);
+
+            if((size.length() >= 11)){
+
+                size = size.substr(0, 11);
+
+            }else{
+
+                while(size.length() < 11){
+                    size = " " + size;
+                }
+            }
+
+
+            std::cout << _processes[i]->pid << "  |" << name << "|  " << virtual_addr << "  |" << size << "\n";
             //std::cout << _processes[i]->variables[j]->name;
             //std::cout << _processes[i]->variables[j]->virtual_address;
             //std::cout << _processes[i]->variables[j]->size;
@@ -80,7 +132,6 @@ uint32_t Mmu::getVirtualAddress(int pid_index, int variable_index){
 
 int Mmu::getVariableIndex(int pid_index, std::string var_name){
 
-    
     int variableIndex = -1;
 
     for (int j = 0; j < _processes[pid_index]->variables.size(); j++)
@@ -97,7 +148,8 @@ int Mmu::getVariableIndex(int pid_index, std::string var_name){
     return variableIndex;
 }
 
-DataType Mmu:: getVariableType(int pid_index, int variable_index){
+DataType Mmu::getVariableType(int pid_index, int variable_index){
+
 
 
     return _processes[pid_index]->variables[variable_index]->type;
@@ -122,6 +174,20 @@ uint32_t Mmu:: getMemorySize(){
 std::vector<Process *> Mmu:: getProcessVector(){
 
     return _processes;
+}
+
+std::string Mmu:: decimalToBinary(int decimal)
+{
+
+    std::stringstream sstream;
+    sstream << std::hex << decimal;
+    std::string result = sstream.str();
+    
+
+    std::transform(result.begin(), result.end(), result.begin(), ::toupper);
+
+    return result;
+
 }
 
 

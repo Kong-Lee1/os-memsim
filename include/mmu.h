@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <iomanip>
 
 enum DataType : uint8_t {FreeSpace, Char, Short, Int, Float, Long, Double};
 
@@ -32,13 +33,14 @@ public:
     uint32_t createProcess();
     void addVariableToProcess(uint32_t pid, std::string var_name, DataType type, uint32_t size, uint32_t address);
     void print();
-    std::vector<Process *> Mmu:: getProcessVector();
-    uint32_t Mmu::getVirtualAddress(int pid_index, int variable_index);
-    int Mmu::getVariableIndex(int pid_index, std::string var_name);
-    DataType Mmu:: getVariableType(int pid_index, int variable_index);
-    int Mmu:: getVariableVecSize(int pid_index);
-    int Mmu:: getVariableSize(int pid_index, int variable_index);
-    uint32_t Mmu:: getMemorySize();
+    std::vector<Process *> getProcessVector();
+    uint32_t getVirtualAddress(int pid_index, int variable_index);
+    int getVariableIndex(int pid_index, std::string var_name);
+    DataType getVariableType(int pid_index, int variable_index);
+    int getVariableVecSize(int pid_index);
+    int  getVariableSize(int pid_index, int variable_index);
+    uint32_t getMemorySize();
+    std::string decimalToBinary(int decimal);
     //int Mmu:: getVariablePIDVirtualAddress(int pid_index, int variable_index);
 };
 

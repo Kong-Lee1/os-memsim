@@ -144,11 +144,49 @@ void PageTable::print()
 
     std::vector<std::string> keys = sortedKeys();
 
+    //grab frame
+
+    //mess with formatting
+
     for (i = 0; i < keys.size(); i++)
     {
         // TODO: print all pages
+
+        std::string str_keys = keys[i];
+        std::string key_pid = " " + str_keys.substr(0, 4) + " ";
+        std::string key_page_Num = str_keys.substr(5, str_keys.length());
+        std::string key_frame_tostring;
+        int key_frame = _table[str_keys]; 
+
+
+        if((key_page_Num.length() >= 13)){
+
+            key_page_Num = key_page_Num.substr(0, 13);
+
+        }else{
+
+                while(key_page_Num.length() < 13)
+                {
+                    key_page_Num = " " + key_page_Num;
+                }
+        }
+
+        key_frame_tostring = std::to_string(key_frame);
+
+        if((key_frame_tostring.length() >= 13)){
+
+                key_frame_tostring = key_frame_tostring.substr(0, 13);
+
+        }else{
+
+                while(key_frame_tostring.length() < 13)
+                {
+                    key_frame_tostring = " " + key_frame_tostring;
+                }
+        }
+
         
-        std::cout << keys[i].at(i) << " | " << " | " << " | " << " | " << std::endl;
+        std::cout << key_pid << "|" << key_page_Num << "|" << key_frame_tostring << std::endl;
     
     }
 }
@@ -175,3 +213,16 @@ uint32_t PageTable::getPageSize(){
 
     return _page_size;
 }
+
+/*
+std::map<std::string, int> PageTable:: getTable(){
+
+
+    
+}
+
+std::map<std::string, int> PageTable:: getFrameNum(std::string pid, std::string pageNumber){
+
+
+}*/
+
