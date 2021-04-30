@@ -38,6 +38,8 @@ public:
     int getNextPageNumber(uint32_t pid);
     void print();
     uint32_t getPageSize();
+    std::map<std::string, int> getTable();
+    std::vector<std::string> getKeys();
 };
 
 #endif // __PAGETABLE_H_

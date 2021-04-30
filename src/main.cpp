@@ -18,6 +18,7 @@ void terminateProcess(uint32_t pid, Mmu *mmu, PageTable *page_table);
 bool powerOfTwo(uint32_t byteSize);
 uint32_t findPageOffset(uint32_t page_size);
 uint32_t handleMemory(std::string command, uint32_t memory_copy, uint32_t pid, DataType type, std::string var_name, int num_elements, int text_size, int data_size);
+int getPageNumber(uint32_t address, int page_size);
 
 int main(int argc, char **argv)
 {
@@ -169,16 +170,14 @@ int main(int argc, char **argv)
             //setVariable(arguments[1], var_name, offset, value, mmu, page_table, memory);
 		
         } else if(arguments[0] == "free"){
-            /*
-  
-
+            
             freeVariable(p1.pid, var_name, mmu, page_table);
-	        */
+	        
         } else if(arguments[0] == "terminate"){
-            /*
+            
             terminateProcess(p1.pid, mmu, page_table);
             
-            */
+            
         } else if(arguments[0] == "print"){
 
             print_object = arguments[1];
@@ -709,12 +708,15 @@ void freeVariable(uint32_t pid, std::string var_name, Mmu *mmu, PageTable *page_
 
     int var_type_size = -1;
     DataType var_type = mmu->getVariableType(pid_index, variable_index);
+
     std::vector<Process *> process_Vec = mmu->getProcessVector();
+    std::map<std::string, int> table = page_table->getTable();
+    std::vector<std::string> keys = page_table->getKeys();
 
     var_type_size = mmu->getVariableSize(pid_index, variable_index);
 
     uint32_t var_virtual_addr = mmu->getVirtualAddress(pid_index, variable_index);
-    uint32_t var_physcial_addr = page_table->getPhysicalAddress(pid, var_virtual_addr);
+    uint32_t var_physical_addr = page_table->getPhysicalAddress(pid, var_virtual_addr);
 
     //void *var_ptr = malloc();
 
@@ -733,7 +735,7 @@ void freeVariable(uint32_t pid, std::string var_name, Mmu *mmu, PageTable *page_
     //checks for non-exisiting variable in the process vector
     for(int i = 0; i < processVec.size(); i++){
         
-        for(int j = 0; i < processVec[i]->variables.size(); j++ ){
+        for(int j = 0; j < processVec[i]->variables.size(); j++ ){
 
             if(processVec[i]->variables[j]->name != var_name){
 
@@ -742,19 +744,129 @@ void freeVariable(uint32_t pid, std::string var_name, Mmu *mmu, PageTable *page_
         }
     }
 
+    int variable_begin;
+    int variable_end;
+    int variable_before_end;
+    int variable_after_begin;
 
-    for(int i = 0; i < processVec.size(); i++){
+    for(int i = 0; i < processVec.size(); i++)
+    {
         
-        for(int j = 0; i < processVec[i]->variables.size(); j++ ){
+        for(int j = 0; j < processVec[i]->variables.size(); j++ )
+        {
 
             if(processVec[i]->variables[j]->name == var_name){
+                    
+                    variable_begin = processVec[i]->variables[j]->virtual_address;
+                    variable_end = variable_begin + processVec[i]->variables[j]->size - 1;
+
+                    variable_begin = getPageNumber(variable_begin, page_table->getPageSize());
+                    variable_end = getPageNumber(variable_end, page_table->getPageSize());
+
+
+
+
+
+
+                if(j > 0){
+
+                    variable_before_end = processVec[i]->variables[j - 1]->virtual_address + processVec[i]->variables[j - 1]->size - 1;
+                    variable_before_end = getPageNumber(variable_before_end, page_table->getPageSize());
+
+                }
+
+                if(j < processVec[i]->variables[j]->size - 1){
+                    
+                    variable_after_begin = processVec[i]->variables[j + 1]->virtual_address;
+                    variable_after_begin = getPageNumber(variable_after_begin, page_table->getPageSize());
+                }
+
+                // if the variable is the beginning
+                if(j == 0){
+                    
+                    if(variable_begin > 0){
+
+                        for(int i = 0; i < variable_begin; i++)
+                        {
+
+                            uint32_t page_number = i;
+                            std::string entry = std::to_string(pid) + "|" + std::to_string(page_number);
+
+                            table.erase(entry);
+
+                            
+                        }
+                    }
+                    //this erases that the variable ends on 
+                    if(variable_end != variable_after_begin){
+                        
+                        std::string entry = std::to_string(pid) + "|" + std::to_string(variable_end);
+
+                        table.erase(entry);
+                        
+                    }
+
+                }
+                // if the variable is in the middle
+                if(j > 0 && j < processVec[i]->variables[j]->size - 1){
+
+                    if(variable_before_end != variable_begin && variable_after_begin != variable_begin)
+                    {
+                        std::string entry = std::to_string(pid) + "|" + std::to_string(variable_begin);
+
+                        table.erase(entry);
+                    }
+
+                    if(variable_after_begin != variable_end && variable_end != variable_before_end){
+
+                        std::string entry = std::to_string(pid) + "|" + std::to_string(variable_end);
+
+                        table.erase(entry);
+                    }
+                }
+
+                if(j == processVec[i]->variables[j]->size - 1)
+                {
+                    if(variable_begin != variable_before_end){
+
+                         std::string entry = std::to_string(pid) + "|" + std::to_string(variable_begin);
+
+                        table.erase(entry);
+                    }
+
+                    if(variable_end != variable_before_end){
+                        
+                        std::string entry = std::to_string(pid) + "|" + std::to_string(variable_end);
+
+                        table.erase(entry);
+                    }
+                }
+
+                //delete all the pages in the middle
+
+                for(int i = variable_begin + 1; i < variable_end; i++){
+                    
+                    std::string entry = std::to_string(pid) + "|" + std::to_string(i);
+
+                    table.erase(entry);
+
+                }
+                    
+
 
                 processVec[i]->variables.erase(processVec[i]->variables.begin()+j);
             }
         }
     }
 
-    //delete &mmu[pid];
+    //if page is empty, we need to delete the page --> dealing with page size
+/*
+    for(int i = 0; i < keys.size(); i++){
+
+        if(table[].empty())
+    }
+
+    delete &mmu[pid];*/
 }
 
 void terminateProcess(uint32_t pid, Mmu *mmu, PageTable *page_table)
@@ -765,30 +877,52 @@ void terminateProcess(uint32_t pid, Mmu *mmu, PageTable *page_table)
 
 
     std::vector<Process *> processVec = mmu->getProcessVector();
+    std::string entry;
+    std::map<std::string, int> table = page_table->getTable();
+    int memory_size = mmu->getMemorySize();
+    int page_size = page_table->getPageSize();
+
+    int flag = 0;//used if PID is found/existing
+
 
     //checks for exisiting process in the process vector
     for(int i = 0; i < processVec.size(); i++){
         
-        if((uint32_t)processVec[i]->pid != pid){
+        if((uint32_t)processVec[i]->pid == pid){
 
-            printf(" error: process not found \n");
+            //printf(" error: process not found \n");
+            flag = 1; 
         }
     }
+    
+    if(flag == 0){
 
-    /*
+        printf(" error: process not found \n");
+    }
+
+    
     for(int i = 0; i < processVec.size(); i++){
         
         if((uint32_t)processVec[i]->pid == pid){
 
-            processVec[i]->
-            
+            processVec.erase(processVec.begin()+ i );
+
+        
         }
-    }*/
+    }
 
+    for(int j = 0; j < memory_size/page_size; j++){
 
+         entry = std::to_string(pid) + "|" + std::to_string(j);
 
-    delete &mmu[pid];
-    free(&page_table[pid]);
+         if(table.count(entry) > 0){
+
+             table.erase(entry);
+         }
+    }
+
+    //delete &mmu[pid];
+    //free(&page_table[pid]);
     
 }
 bool powerOfTwo(uint32_t byteSize)
@@ -804,4 +938,9 @@ bool powerOfTwo(uint32_t byteSize)
 }
 uint32_t findPageOffset(uint32_t page_size) {
 	return log2(page_size);
+}
+
+int getPageNumber(uint32_t address, int page_size){
+
+    return floor(address/page_size);
 }

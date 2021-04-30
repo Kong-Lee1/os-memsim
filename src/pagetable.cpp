@@ -214,13 +214,18 @@ uint32_t PageTable::getPageSize(){
     return _page_size;
 }
 
-/*
+
 std::map<std::string, int> PageTable:: getTable(){
 
-
+    return _table;
     
 }
 
+std::vector<std::string> PageTable:: getKeys(){
+
+    return sortedKeys();
+}
+/*
 std::map<std::string, int> PageTable:: getFrameNum(std::string pid, std::string pageNumber){
 
 
