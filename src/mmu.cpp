@@ -25,7 +25,7 @@ uint32_t Mmu::createProcess()
     Variable *var = new Variable();
     var->name = "<FREE_SPACE>";
     var->type = DataType::FreeSpace;
-    var->virtual_address = 0;//does this change for each created process?
+    var->virtual_address = 0;
     var->size = _max_size;
     proc->variables.push_back(var);
 
@@ -63,8 +63,6 @@ void Mmu::print()
     int i, j;
     int space_counter;
 
-
-
     std::cout << " PID  | Variable Name | Virtual Addr | Size" << std::endl;
     std::cout << "------+---------------+--------------+------------" << std::endl;
     for (i = 0; i < _processes.size(); i++)
@@ -73,9 +71,8 @@ void Mmu::print()
         {
             // TODO: print all variables (excluding <FREE_SPACE> entries)
                 std::string name = _processes[i]->variables[j]->name;
-                //std::stringstream ss = (int)_processes[i]->variables[j]->virtual_address;
 
-                std::string virtual_addr;// = std::to_string(_processes[i]->variables[j]->virtual_address);
+                std::string virtual_addr;
 
             if(name.length() >= 15){
 
@@ -116,11 +113,8 @@ void Mmu::print()
                 }
             }
 
-
             std::cout << _processes[i]->pid << "  |" << name << "|  " << virtual_addr << "  |" << size << "\n";
-            //std::cout << _processes[i]->variables[j]->name;
-            //std::cout << _processes[i]->variables[j]->virtual_address;
-            //std::cout << _processes[i]->variables[j]->size;
+
         }
     }
 }
@@ -141,16 +135,12 @@ int Mmu::getVariableIndex(int pid_index, std::string var_name){
 
             variableIndex = j;
         }
-
     }
-    
     
     return variableIndex;
 }
 
 DataType Mmu::getVariableType(int pid_index, int variable_index){
-
-
 
     return _processes[pid_index]->variables[variable_index]->type;
 
@@ -190,15 +180,84 @@ std::string Mmu:: decimalToBinary(int decimal)
 
 }
 
+bool Mmu:: deleteProcess (int pid_index){
 
-/*
-int Mmu:: getVariablePIDVirtualAddress(int pid_index, int variable_index){
+    //no error checking needed here as the terminate function already does with the PID
+    // we can assume that the page number is valid when calling this function in terminate
 
-    return _processes[pid_index]->variables[variable_index]->virtual_address;
-}*/
+    _processes.erase(_processes.begin() + pid_index );
+    
+
+    return true;
+}
+
+bool Mmu:: deleteVariable (int pid_index, std::string var_name){
+
+    //no error checking needed here as the terminate function already does with the PID
+    // we can assume that the page number is valid when calling this function in terminate
+
+    //std::string entry = std::to_string(pid) + "|" + std::to_string(page_number);;
+
+    for(int i = 0; i < _processes[pid_index]->variables.size(); i++){
+        
+        if(_processes[pid_index]->variables[i]->name == var_name){
+
+            _processes[pid_index]->variables.erase(_processes[pid_index]->variables.begin() + i);
+        }
+    }
+    
+    return true;
+}
+
+bool Mmu:: setAddress(int pid_index, std::string var_name, uint32_t new_virtual_address){
 
 
-//std::vector<Process*> getProcessesVec(std::vector<Process*> _Processes, uint32_t *pid){
+    for(int i = 0; i < _processes[pid_index]->variables.size(); i++){
+        
+        if(_processes[pid_index]->variables[i]->name == var_name){
 
-    //return _Processes.erase();
-//}
+            _processes[pid_index]->variables[i]->virtual_address = new_virtual_address;
+        }
+        
+    }
+    
+    return true;
+
+}
+
+bool Mmu:: checkValidPID(uint32_t pid){
+
+
+    int i = 0;
+
+    for(int i = 0; i < _processes.size(); i++ ){
+
+        if(_processes[i]->pid == pid){
+
+            return true;
+        }
+    }
+
+    return false;
+
+}
+
+bool Mmu:: checkValidVarName(uint32_t pid, std::string var_name){
+
+
+    int i = 0;
+
+    for(int i = 0; i < _processes.size(); i++ ){
+        for(int j = 0; i < _processes[i]->variables.size(); j++){
+            
+            if(_processes[i]->variables[j]->name == var_name){
+
+                return true;
+            }
+        }
+       
+    }
+
+    return false;
+
+}

@@ -41,7 +41,12 @@ public:
     int  getVariableSize(int pid_index, int variable_index);
     uint32_t getMemorySize();
     std::string decimalToBinary(int decimal);
-    //int Mmu:: getVariablePIDVirtualAddress(int pid_index, int variable_index);
+    bool deleteProcess (int pid_index);
+    bool deleteVariable (int pid_index, std::string var_name);
+    bool setAddress(int pid_index, std::string var_name, uint32_t new_virtual_address);
+    bool checkValidPID(uint32_t pid);
+    bool checkValidVarName(uint32_t pid, std::string var_name);
+    
 };
 
 #endif // __MMU_H_

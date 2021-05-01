@@ -40,6 +40,7 @@ public:
     uint32_t getPageSize();
     std::map<std::string, int> getTable();
     std::vector<std::string> getKeys();
+    bool deletePage (uint32_t pid, int page_number);
 };
 
 #endif // __PAGETABLE_H_

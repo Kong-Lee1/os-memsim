@@ -46,12 +46,6 @@ void PageTable::addEntry(uint32_t pid, int page_number)
     // the number of frames equal the number of pages
     _table[entry] = frame;
 
-    //_table.empty;
-    //the key would be passed into operator to access they key's mapped value
-    //_table.operator[entry] = 
-
-    // Do we need to consider page numbers?? - 04/23/21
-
     for(int i = 1; i < page_number; i++){
 
         if(_table.at(entry) == 0){
@@ -59,7 +53,6 @@ void PageTable::addEntry(uint32_t pid, int page_number)
             _table[entry] = i;
         }
     }
-    
 }
 
 int PageTable::getPhysicalAddress(uint32_t pid, uint32_t virtual_address)
@@ -68,42 +61,11 @@ int PageTable::getPhysicalAddress(uint32_t pid, uint32_t virtual_address)
     // TODO: implement this!
    
     uint32_t holder = 0;
-    //uint32_t tester = 2;
     //bit shifting works for real_page_number & real_page_offset - 04/21/21
 
     uint32_t n = (uint32_t)log2(_page_size);// n bits for pageoffset
     uint32_t page_number = virtual_address >> n;
     uint32_t page_offset = (_page_size - 1) & virtual_address;
-
-    /*
-
-    for(int i = 0; i < page_offset_holder; i++){
-        
-        holder = holder + pow(2, i);
-    }
-
-    int real_page_offset = holder & virtual_address;
-
-    int page_number_holder = 32 - page_offset_holder;
-
-    holder = 0;
-
-    for(int i = 0; i < page_number_holder; i++){
-        
-        holder = holder + pow(2, 31 - i);
-    }
-
-    int real_page_number = virtual_address & holder;
-
-        //std::cout << "real page offset is " << page_offset_holder << "\n";
-
-        //real_page_number = real_page_number >> page_offset_holder;
-        //std::cout << "real page number is " << real_page_number << "\n";
-    //for(int j = 0; j < page_offset_holder; j++){
-
-        //std::cout << (real_page_offset >> 1) << "\n";
-    //}
-    */
 
 
     // Combination of pid and page number act as the key to look up frame number
@@ -122,13 +84,15 @@ int PageTable::getPhysicalAddress(uint32_t pid, uint32_t virtual_address)
     if (_table.count(entry) > 0)
     {
         // TODO: implement this!
+        
         address = _table[entry];//this is the physical frame number address at the entry (PID|page_number) in physical memory
 
+        address = floor(address/_page_size);
         //want to join the physical frame number address and page offset together
 
         address = address << n; 
 
-        address = address & page_offset; //??? physical frame number and pageoffset
+        address = address | page_offset; //??? physical frame number and pageoffset
 
     }
 
@@ -224,6 +188,20 @@ std::map<std::string, int> PageTable:: getTable(){
 std::vector<std::string> PageTable:: getKeys(){
 
     return sortedKeys();
+}
+
+bool PageTable:: deletePage (uint32_t pid, int page_number){
+
+    //no error checking needed here as the terminate function already does with the PID
+    // we can assume that the page number is valid when calling this function in terminate
+
+    std::string entry = std::to_string(pid) + "|" + std::to_string(page_number);;
+
+
+    _table.erase(entry);
+    
+
+    return true;
 }
 /*
 std::map<std::string, int> PageTable:: getFrameNum(std::string pid, std::string pageNumber){
